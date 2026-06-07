@@ -22,4 +22,5 @@ A mischievous hacker cat that lives on your desktop, follows your mouse, and cau
 
 1. **Clone the repository:**
 ```bash
+https://github.com/CRXYUNCLE/HackerCat
 cd HackerCat
