@@ -13,12 +13,20 @@ html, body {
   -webkit-user-select: none;
 }
 .wrapper { 
-  width: 280px; 
-  height: 360px; 
+  width: 100%; 
+  height: 100%; 
   position: relative;
-  cursor: grab;
 }
-.wrapper:active { cursor: grabbing; }
+
+/* Make the entire wrapper draggable */
+.wrapper {
+  -webkit-app-region: drag;
+}
+
+/* But make interactive elements non-draggable */
+.cat-click-area, .rage-meter-container, svg {
+  -webkit-app-region: no-drag;
+}
 
 @keyframes bob       { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-4px)} }
 @keyframes fastbob   { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-2px)} }
@@ -27,22 +35,6 @@ html, body {
 @keyframes tailwag   { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(12deg)} }
 @keyframes popspeech { 0%{opacity:0;transform:translateX(-50%) scale(0.8) translateY(6px)} 14%{opacity:1;transform:translateX(-50%) scale(1) translateY(0)} 78%{opacity:1} 100%{opacity:0} }
 @keyframes rageShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
-@keyframes matrixRain {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 0% 100%; }
-}
-@keyframes glitchText {
-  0% { transform: skew(0deg); opacity: 1; }
-  20% { transform: skew(5deg); opacity: 0.8; }
-  40% { transform: skew(-5deg); opacity: 1; }
-  60% { transform: skew(2deg); opacity: 0.9; }
-  80% { transform: skew(-2deg); opacity: 1; }
-  100% { transform: skew(0deg); opacity: 1; }
-}
-@keyframes pulse {
-  0%,100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
 
 .cat-g { transform-origin: 140px 170px; }
 .state-idle     .cat-g  { animation: bob       3.2s ease-in-out infinite; }
@@ -96,37 +88,6 @@ html, body {
 }
 .speech.show { animation: popspeech 3.2s ease forwards; }
 
-.hack-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 25;
-  opacity: 0;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.hack-overlay.active {
-  animation: glitchText 0.1s infinite;
-}
-.hack-matrix {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(0deg, #00ff41 0%, #00ff41 2%, transparent 3%, transparent 100%);
-  background-size: 100% 8px;
-  opacity: 0;
-  pointer-events: none;
-}
-.hack-matrix.active {
-  animation: matrixRain 0.5s linear infinite;
-  opacity: 0.6;
-}
-
 .rage-meter-container {
   position: absolute;
   bottom: 8px;
@@ -165,92 +126,12 @@ html, body {
   font-size: 8px;
   margin-left: 4px;
 }
-
-.fake-popup {
-  position: fixed;
-  background: #c0c0c0;
-  border: 3px solid #ffffff;
-  border-radius: 8px;
-  box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
-  font-family: 'Courier New', monospace;
-  z-index: 10000;
-  min-width: 280px;
-  animation: popupAppear 0.2s ease-out;
-}
-@keyframes popupAppear {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-.popup-titlebar {
-  background: #000080;
-  color: white;
-  padding: 5px 8px;
-  font-size: 12px;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  cursor: move;
-}
-.popup-content {
-  background: #ffffff;
-  padding: 15px;
-  color: #000000;
-  font-size: 12px;
-}
-.popup-content button {
-  margin-top: 10px;
-  padding: 4px 12px;
-  background: #c0c0c0;
-  border: 2px outset #ffffff;
-  cursor: pointer;
-  font-family: monospace;
-}
-.popup-content button:active {
-  border: 2px inset #ffffff;
-}
-
-.fake-terminal {
-  position: fixed;
-  background: #0a0a0a;
-  color: #00ff41;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  border: 2px solid #00ff41;
-  border-radius: 5px;
-  z-index: 10001;
-  width: 550px;
-  height: 320px;
-  box-shadow: 0 0 20px rgba(0,255,65,0.5);
-  animation: popupAppear 0.2s ease-out;
-}
-.terminal-header {
-  background: #1a1a1a;
-  padding: 6px 10px;
-  border-bottom: 1px solid #00ff41;
-  display: flex;
-  justify-content: space-between;
-  cursor: move;
-}
-.terminal-body {
-  padding: 10px;
-  overflow-y: auto;
-  height: calc(100% - 35px);
-  font-size: 11px;
-  line-height: 1.4;
-}
-.terminal-line {
-  white-space: nowrap;
-  overflow-x: auto;
-}
 </style>
 </head>
 <body>
 <div class="wrapper state-idle" id="root">
 
   <div class="speech" id="speech">🐱 meow.</div>
-  <div class="hack-overlay" id="hackOverlay">
-    <div class="hack-matrix" id="matrix"></div>
-  </div>
   
   <div class="rage-meter-container" id="rageContainer">
     <div class="rage-label">
@@ -262,7 +143,8 @@ html, body {
     </div>
   </div>
 
-  <svg width="280" height="360" viewBox="0 0 280 360" xmlns="http://www.w3.org/2000/svg">
+  <!-- CAT SVG (same as before) -->
+  <svg width="280" height="360" viewBox="0 0 280 360" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer;">
     <g class="cat-g" id="catg">
       <g class="tail-g" id="tailg">
         <path d="M95 215 Q60 225 45 248 Q58 258 80 250 Q100 240 102 222" fill="#2a2a3a" stroke="#1e1e2e" stroke-width="1.5"/>
@@ -369,394 +251,153 @@ html, body {
   </svg>
 </div>
 
+<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
 <script>
-// ==================== CHAOTIC MESSAGES ====================
-const MSGS = [
-  '🐱 meow.', '💻 hacking...', 'sudo rm -rf /fun', '🔓 access granted',
-  '👀 i see u.', '>_ cat /dev/null', '🐱‍💻 payload deployed', '🔥 firewall? lol',
-  'need coffee!!', '0x1337cat', 'brb hacking nasa', 'nice try human',
-  'purr...ring...', 'target acquired', '🐟 fish.exe not found',
-  '; DROP TABLE mice', 'im in.', 'meow meow meow', 'just kitten around',
-  'chasing cursor...', '🐭 gotcha!', 'keyboard warrior'
+// QWebChannel bridge setup
+let pybridge = null;
+new QWebChannel(qt.webChannelTransport, function(channel) {
+    pybridge = channel.objects.pybridge;
+    console.log("QWebChannel ready, pybridge available");
+});
+
+// ==================== TYPING SIMULATION ====================
+const hackingWords = [
+    'sudo', 'meow', 'hack', 'login', 'access', 'granted', 'denied', 
+    'password', 'error', 'success', 'failed', 'connecting', 'bypass',
+    'firewall', 'detected', 'scanning', 'downloading', 'uploading',
+    'encrypting', 'decrypting', 'injecting', 'payload', 'exploit',
+    'root', 'admin', 'guest', 'anonymous', 'breach', 'security'
 ];
 
+let isTyping = false;
+
+function typeRandomWord() {
+    if (isTyping) return;
+    isTyping = true;
+    
+    const laptopText = document.getElementById('laptop-text');
+    const root = document.getElementById('root');
+    
+    if (!laptopText) return;
+    
+    root.classList.add('state-typing');
+    
+    const word = hackingWords[Math.floor(Math.random() * hackingWords.length)];
+    const fullText = `>_ ${word}...`;
+    let i = 0;
+    
+    function typeNextChar() {
+        if (i <= fullText.length) {
+            laptopText.textContent = fullText.substring(0, i);
+            i++;
+            setTimeout(typeNextChar, 100 + Math.random() * 100);
+        } else {
+            setTimeout(() => {
+                laptopText.textContent = '>_ ';
+                setTimeout(() => {
+                    isTyping = false;
+                    root.classList.remove('state-typing');
+                    setTimeout(typeRandomWord, 2000 + Math.random() * 3000);
+                }, 500);
+            }, 1500 + Math.random() * 1000);
+        }
+    }
+    
+    typeNextChar();
+}
+
+setTimeout(typeRandomWord, 1000);
+
+// ==================== RAGE SYSTEM ====================
 let rageLevel = 0;
 let rageMode = false;
 
-// ==================== HELPER: Get random position within VISIBLE screen ====================
-function getRandomScreenPosition(elementWidth, elementHeight) {
-  const screenWidth = window.innerWidth || document.documentElement.clientWidth;
-  const screenHeight = window.innerHeight || document.documentElement.clientHeight;
-  const margin = 30;
-  const maxX = screenWidth - elementWidth - margin;
-  const maxY = screenHeight - elementHeight - margin;
-  const minX = margin;
-  const minY = margin;
-  const randomX = Math.max(minX, Math.random() * (maxX - minX) + minX);
-  const randomY = Math.max(minY, Math.random() * (maxY - minY) + minY);
-  return { x: randomX, y: randomY };
-}
-
-// ==================== FAKE POPUPS ====================
-function createFakePopup(title, content, isScary = false) {
-  const existing = document.querySelectorAll('.fake-popup');
-  if (existing.length > 5) existing[0].remove();
-  
-  const popup = document.createElement('div');
-  popup.className = 'fake-popup';
-  popup.style.visibility = 'hidden';
-  popup.style.position = 'fixed';
-  popup.style.left = '0';
-  popup.style.top = '0';
-  document.body.appendChild(popup);
-  
-  let titleText = title;
-  let contentHtml = content;
-  
-  if (isScary) {
-    titleText = '⚠️ SYSTEM ALERT ⚠️';
-    contentHtml = `
-      <div style="color:#ff0000; font-weight:bold; text-align:center;">
-        ${content}
-        <br><br>
-        <div style="background:#000; color:#0f0; padding:5px; font-size:10px;">
-          >_ Press OK to continue...
-        </div>
-      </div>
-      <button onclick="this.closest('.fake-popup').remove()">OK</button>
-    `;
-  } else {
-    contentHtml = `
-      ${content}
-      <br><br>
-      <div style="display:flex; gap:10px; justify-content:center;">
-        <button onclick="this.closest('.fake-popup').remove()">OK</button>
-        <button onclick="this.closest('.fake-popup').remove()">Cancel</button>
-      </div>
-    `;
-  }
-  
-  popup.innerHTML = `
-    <div class="popup-titlebar">
-      <span>${titleText}</span>
-      <span style="cursor:pointer;" onclick="this.closest('.fake-popup').remove()">✖</span>
-    </div>
-    <div class="popup-content">${contentHtml}</div>
-  `;
-  
-  const popupWidth = popup.offsetWidth;
-  const popupHeight = popup.offsetHeight;
-  const { x, y } = getRandomScreenPosition(popupWidth, popupHeight);
-  
-  popup.style.visibility = 'visible';
-  popup.style.left = Math.max(0, x) + 'px';
-  popup.style.top = Math.max(0, y) + 'px';
-  
-  let isDragging = false;
-  let dragOffset = { x: 0, y: 0 };
-  const titlebar = popup.querySelector('.popup-titlebar');
-  
-  titlebar.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    dragOffset.x = e.clientX - popup.offsetLeft;
-    dragOffset.y = e.clientY - popup.offsetTop;
-    popup.style.zIndex = '10002';
-    e.preventDefault();
-  });
-  
-  window.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      let newX = e.clientX - dragOffset.x;
-      let newY = e.clientY - dragOffset.y;
-      newX = Math.min(window.innerWidth - popupWidth, Math.max(0, newX));
-      newY = Math.min(window.innerHeight - popupHeight, Math.max(0, newY));
-      popup.style.left = newX + 'px';
-      popup.style.top = newY + 'px';
-    }
-  });
-  
-  window.addEventListener('mouseup', () => { isDragging = false; });
-  setTimeout(() => { if(popup && popup.remove) popup.remove(); }, 15000);
-  return popup;
-}
-
-function createFakeTerminal() {
-  const existing = document.querySelectorAll('.fake-terminal');
-  if (existing.length > 4) existing[0].remove();
-  
-  const terminal = document.createElement('div');
-  terminal.className = 'fake-terminal';
-  terminal.style.visibility = 'hidden';
-  terminal.style.position = 'fixed';
-  terminal.style.left = '0';
-  terminal.style.top = '0';
-  document.body.appendChild(terminal);
-  
-  const hackLines = [
-    '>_ Connecting to 127.0.0.1...',
-    '>_ Bypassing firewall... [■■■■■■■■□□] 80%',
-    '>_ Injecting payload...',
-    '>_ Access granted to /root',
-    '>_ Downloading cat_virus.exe',
-    '>_ System password: ********',
-    '>_ Deleting system32... JK! 😸',
-    '>_ cat says: MEOWTHERLOADER v2.0',
-    '>_ Your IP: 192.168.1.' + Math.floor(Math.random() * 255),
-    '>_ Hacking complete. Have a nice day!'
-  ];
-  
-  let lineIndex = 0;
-  
-  terminal.innerHTML = `
-    <div class="terminal-header">
-      <span>C:\\WINDOWS\\SYSTEM32\\cmd.exe</span>
-      <span style="cursor:pointer;" onclick="this.closest('.fake-terminal').remove()">✖</span>
-    </div>
-    <div class="terminal-body" id="termBody"></div>
-  `;
-  
-  const termWidth = terminal.offsetWidth;
-  const termHeight = terminal.offsetHeight;
-  const { x, y } = getRandomScreenPosition(termWidth, termHeight);
-  
-  terminal.style.visibility = 'visible';
-  terminal.style.left = Math.max(0, x) + 'px';
-  terminal.style.top = Math.max(0, y) + 'px';
-  
-  const termBody = terminal.querySelector('#termBody');
-  
-  function addLine() {
-    if (lineIndex < hackLines.length) {
-      const line = document.createElement('div');
-      line.className = 'terminal-line';
-      line.innerHTML = hackLines[lineIndex];
-      termBody.appendChild(line);
-      termBody.scrollTop = termBody.scrollHeight;
-      lineIndex++;
-      setTimeout(addLine, 300 + Math.random() * 200);
-    } else {
-      setTimeout(() => { if(terminal && terminal.remove) terminal.remove(); }, 4000);
-    }
-  }
-  addLine();
-  
-  let isDragging = false;
-  let dragOffset = { x: 0, y: 0 };
-  const header = terminal.querySelector('.terminal-header');
-  
-  header.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    dragOffset.x = e.clientX - terminal.offsetLeft;
-    dragOffset.y = e.clientY - terminal.offsetTop;
-    terminal.style.zIndex = '10003';
-    e.preventDefault();
-  });
-  
-  window.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      let newX = e.clientX - dragOffset.x;
-      let newY = e.clientY - dragOffset.y;
-      newX = Math.min(window.innerWidth - termWidth, Math.max(0, newX));
-      newY = Math.min(window.innerHeight - termHeight, Math.max(0, newY));
-      terminal.style.left = newX + 'px';
-      terminal.style.top = newY + 'px';
-    }
-  });
-  
-  window.addEventListener('mouseup', () => { isDragging = false; });
-  setTimeout(() => { if(terminal && terminal.remove) terminal.remove(); }, 12000);
-  return terminal;
-}
-
-function createCommandPromptSpam() {
-  const numTerms = Math.min(6, 3 + Math.floor(rageLevel / 20));
-  for (let i = 0; i < numTerms; i++) {
-    setTimeout(() => { createFakeTerminal(); }, i * 400);
-  }
-}
-
-function createErrorSpam() {
-  const errors = [
-    '🚨 CRITICAL ERROR: Kernel Panic!',
-    '⚠️ System Overload: Too many meows!',
-    '💀 MEMORY DUMP: cat.exe stopped working',
-    '🔥 CPU Temperature: 9000°C',
-    '📀 DISK ERROR: /dev/null is full',
-    '🐱 HACKER CAT DETECTED: Run!'
-  ];
-  for (let i = 0; i < 4; i++) {
-    setTimeout(() => {
-      createFakePopup('ERROR ' + (0x80000000 + Math.floor(Math.random() * 1000)).toString(16), 
-        errors[Math.floor(Math.random() * errors.length)], true);
-    }, i * 700);
-  }
-}
-
-function matrixAttack() {
-  const matrixDiv = document.getElementById('matrix');
-  const overlay = document.getElementById('hackOverlay');
-  matrixDiv.classList.add('active');
-  overlay.classList.add('active');
-  setTimeout(() => {
-    matrixDiv.classList.remove('active');
-    overlay.classList.remove('active');
-  }, 3000);
-}
-
-function screenFlash() {
-  const flash = document.createElement('div');
-  flash.style.position = 'fixed';
-  flash.style.top = '0';
-  flash.style.left = '0';
-  flash.style.width = '100%';
-  flash.style.height = '100%';
-  flash.style.backgroundColor = '#00ff66';
-  flash.style.opacity = '0.3';
-  flash.style.zIndex = '99999';
-  flash.style.pointerEvents = 'none';
-  document.body.appendChild(flash);
-  setTimeout(() => flash.remove(), 100);
-}
-
-// ==================== RAGE SYSTEM ====================
-function increaseRage(amount, reason) {
-  if (rageMode) return;
-  rageLevel = Math.min(100, rageLevel + amount);
-  updateRageUI();
-  showSpeech(`😾 +${amount.toFixed(1)}% RAGE! (${reason})`);
-  if (rageLevel >= 100 && !rageMode) triggerRageMode();
-}
-
 function updateRageUI() {
-  const fill = document.getElementById('rageFill');
-  const emoji = document.getElementById('rageEmoji');
-  const tears = document.getElementById('tears');
-  const angryBrows = document.getElementById('angry-brows');
-  const root = document.getElementById('root');
-  
-  fill.style.width = rageLevel + '%';
-  if (rageLevel < 20) emoji.innerText = '😺';
-  else if (rageLevel < 50) emoji.innerText = '😐';
-  else if (rageLevel < 80) emoji.innerText = '😾';
-  else emoji.innerText = '👿';
-  
-  if (rageLevel > 70) {
-    tears.style.opacity = '0.7';
-    angryBrows.style.opacity = '0.8';
-  } else {
-    tears.style.opacity = '0';
-    angryBrows.style.opacity = '0';
-  }
-  
-  if (rageLevel > 90) root.classList.add('state-rage');
-  else root.classList.remove('state-rage');
-}
-
-function resetRage() {
-  if (rageMode) {
-    showSpeech('😌 forced reset... calming down.');
-    rageMode = false;
-    rageLevel = 0;
-    updateRageUI();
+    const fill = document.getElementById('rageFill');
+    const emoji = document.getElementById('rageEmoji');
+    const tears = document.getElementById('tears');
+    const angryBrows = document.getElementById('angry-brows');
     const root = document.getElementById('root');
-    root.classList.remove('state-rage');
-    document.querySelectorAll('.fake-popup, .fake-terminal').forEach(el => el.remove());
-    const matrixDiv = document.getElementById('matrix');
-    const overlay = document.getElementById('hackOverlay');
-    matrixDiv.classList.remove('active');
-    overlay.classList.remove('active');
-  } else if (rageLevel > 0) {
-    rageLevel = 0;
-    updateRageUI();
-    showSpeech('😌 rage reset.');
-  }
-}
-
-function triggerRageMode() {
-  rageMode = true;
-  showSpeech('💢 RAGE MODE ACTIVATED! PREPARE FOR CHAOS! 💢');
-  createCommandPromptSpam();
-  setTimeout(() => createErrorSpam(), 500);
-  setTimeout(() => matrixAttack(), 1000);
-  setTimeout(() => {
-    createFakePopup('🔥 SYSTEM COMPROMISED 🔥', 
-      'YOUR PC HAS BEEN HACKED BY A CAT!\n\nJust kidding! Have a nice day 😸', true);
-  }, 1500);
-  
-  let popupCount = 0;
-  const rageInterval = setInterval(() => {
-    if (popupCount < 6) {
-      const scaryMsgs = [
-        '⚠️ WARNING: Unauthorized cat detected!',
-        '💀 System failure in 3...2...1...',
-        '🐱 Hacker Cat installed a backdoor!',
-        '📡 Transmitting data to meow_server...',
-        '🔑 Your passwords: all "password123"'
-      ];
-      createFakePopup('URGENT ALERT', scaryMsgs[popupCount % scaryMsgs.length], true);
-      popupCount++;
-    } else {
-      clearInterval(rageInterval);
+    
+    if (fill) fill.style.width = rageLevel + '%';
+    if (emoji) {
+        if (rageLevel < 20) emoji.innerText = '😺';
+        else if (rageLevel < 50) emoji.innerText = '😐';
+        else if (rageLevel < 80) emoji.innerText = '😾';
+        else emoji.innerText = '👿';
     }
-  }, 800);
-  
-  setTimeout(() => {
-    rageLevel = 0;
-    rageMode = false;
-    updateRageUI();
-    showSpeech('😌 phew... chaos over. resetting rage.');
-    const root = document.getElementById('root');
-    root.classList.remove('state-rage');
-  }, 10000);
-}
-
-// ==================== CLICK CHAOS ====================
-function randomChaos() {
-  if (rageMode) {
-    showSpeech('💢 ALREADY IN RAGE MODE! 💢');
-    return;
-  }
-  
-  const actions = [
-    () => createFakePopup('Subscribe to Cat News!', 'Click OK to receive daily cat facts and hacking tips! 🐱'),
-    () => createFakePopup('🔥 YOUR PC IS HACKED 🔥', 'Just kidding! This cat is harmless... mostly. 😸', true),
-    () => createFakePopup('ERROR 0xMEOW1337', 'Cat.exe has performed an illegal operation and will be shut down.\n\n(Just joking, I\'m still here!)'),
-    () => createFakeTerminal(),
-    () => matrixAttack(),
-    () => { createFakePopup('📺 SUBSCRIBE NOW! 📺', 'Like and subscribe for more cat hacking content!\n\nhttps://youtube.com/@hackercat', false); },
-    () => {
-      const messages = ['>_ Deleting all files... PSYCH! 😸', '>_ Installing meowware...', '>_ Your desktop is now cat themed!', '>_ Hacking NASA... access denied. try again?'];
-      createFakeTerminal();
-      setTimeout(() => showSpeech(messages[Math.floor(Math.random() * messages.length)]), 500);
-    },
-    () => screenFlash(),
-    () => {
-      showSpeech('📢 "MEOW!" echoed through the mainframe...');
-      createFakePopup('SYSTEM BROADCAST', 'The cat has spoken: "MEOW"\n\nAll systems acknowledge.', true);
+    if (tears && angryBrows) {
+        if (rageLevel > 70) { tears.style.opacity = '0.7'; angryBrows.style.opacity = '0.8'; }
+        else { tears.style.opacity = '0'; angryBrows.style.opacity = '0'; }
     }
-  ];
-  
-  const randomAction = actions[Math.floor(Math.random() * actions.length)];
-  randomAction();
-  const rageIncrease = 0.5 + (Math.random() * 4.5);
-  increaseRage(rageIncrease, 'clicked cat');
-  const clickReactions = ['😾 stop touching me!', '🐱 hey! thats rude.', '👿 click again. i dare you.', '💢 STOP!', '🔥 rage increasing...', '😤 so annoying!'];
-  showSpeech(clickReactions[Math.floor(Math.random() * clickReactions.length)]);
+    if (root) {
+        if (rageLevel > 90) root.classList.add('state-rage');
+        else root.classList.remove('state-rage');
+    }
 }
 
-// ==================== CAT CLICK HANDLER ====================
-document.querySelector('.wrapper').addEventListener('click', (e) => {
-  if (e.target.closest('#rageContainer')) return;
-  randomChaos();
-});
+function showSpeech(msg) {
+    const speechDiv = document.getElementById('speech');
+    if (!speechDiv) return;
+    speechDiv.textContent = msg;
+    speechDiv.className = 'speech';
+    void speechDiv.offsetWidth;
+    speechDiv.className = 'speech show';
+    setTimeout(() => { if (speechDiv) speechDiv.style.opacity = '0'; }, 3000);
+}
 
-document.getElementById('rageContainer').addEventListener('click', () => {
-  if (rageMode) showSpeech('💢 TOO LATE! CHAOS ALREADY UNLEASHED! 💢');
-  else if (rageLevel > 0) {
-    rageLevel = 0;
+function increaseRage(amount, reason) {
+    if (rageMode) return;
+    rageLevel = Math.min(100, rageLevel + amount);
     updateRageUI();
-    showSpeech('😌 rage reset.');
-  }
+    showSpeech(`😾 +${amount.toFixed(1)}% RAGE! (${reason})`);
+    if (rageLevel >= 100 && !rageMode) {
+        rageMode = true;
+        // Tell Python to open a full-screen overlay
+        if (pybridge && pybridge.startFullscreenRage) {
+            pybridge.startFullscreenRage();
+        } else {
+            console.error("pybridge not available");
+        }
+        showSpeech('💢 FULL SCREEN CHAOS ENGAGED! 💢');
+        
+        // Reset rage locally after 10 seconds
+        setTimeout(() => {
+            rageLevel = 0;
+            rageMode = false;
+            updateRageUI();
+            showSpeech('😌 Chaos over. Rage reset.');
+            const root = document.getElementById('root');
+            if (root) root.classList.remove('state-rage');
+        }, 10000);
+    }
+}
+
+// ==================== EVENT LISTENERS ====================
+const catSvg = document.querySelector('svg');
+if (catSvg) {
+    catSvg.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target.closest('#rageContainer')) return;
+        if (!rageMode) {
+            const increase = Math.random() * 5;
+            if (increase > 0.3) {
+                increaseRage(increase, 'clicked cat');
+            }
+            const reactions = ['😾 stop!', '🐱 hey!', '👿 meow!', '💢 STOP!', '🔥 annoying!'];
+            if (Math.random() > 0.7) showSpeech(reactions[Math.floor(Math.random() * reactions.length)]);
+        } else showSpeech('💢 RAGE MODE ACTIVE! 💢');
+    });
+}
+
+document.getElementById('rageContainer')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (rageMode) showSpeech('💢 TOO LATE!');
+    else if (rageLevel > 0) { 
+        rageLevel = 0; 
+        updateRageUI(); 
+        showSpeech('😌 rage reset.'); 
+    }
 });
 
 // ==================== EYE TRACKING ====================
@@ -767,135 +408,52 @@ const shiL = document.getElementById('shi-l');
 const shiR = document.getElementById('shi-r');
 
 function updatePupils() {
-  if (rageMode) return;
-  const leftEyeX = 108, leftEyeY = 124;
-  const rightEyeX = 172, rightEyeY = 124;
-  const maxOffset = 8;
-  let angleL = Math.atan2(mouseY - leftEyeY, mouseX - leftEyeX);
-  let angleR = Math.atan2(mouseY - rightEyeY, mouseX - rightEyeX);
-  let distL = Math.min(1, Math.hypot(mouseX - leftEyeX, mouseY - leftEyeY) / 80);
-  let distR = Math.min(1, Math.hypot(mouseX - rightEyeX, mouseY - rightEyeY) / 80);
-  const offsetL = maxOffset * distL;
-  const offsetR = maxOffset * distR;
-  pupL.setAttribute('cx', leftEyeX + Math.cos(angleL) * offsetL);
-  pupL.setAttribute('cy', leftEyeY + Math.sin(angleL) * offsetL);
-  pupR.setAttribute('cx', rightEyeX + Math.cos(angleR) * offsetR);
-  pupR.setAttribute('cy', rightEyeY + Math.sin(angleR) * offsetR);
-  shiL.setAttribute('cx', leftEyeX + Math.cos(angleL) * (offsetL - 3));
-  shiL.setAttribute('cy', leftEyeY + Math.sin(angleL) * (offsetL - 4));
-  shiR.setAttribute('cx', rightEyeX + Math.cos(angleR) * (offsetR - 3));
-  shiR.setAttribute('cy', rightEyeY + Math.sin(angleR) * (offsetR - 4));
+    if (!pupL || !pupR) return;
+    const leftEyeX = 108, leftEyeY = 124;
+    const rightEyeX = 172, rightEyeY = 124;
+    const maxOffset = 8;
+    let angleL = Math.atan2(mouseY - leftEyeY, mouseX - leftEyeX);
+    let angleR = Math.atan2(mouseY - rightEyeY, mouseX - rightEyeX);
+    let distL = Math.min(1, Math.hypot(mouseX - leftEyeX, mouseY - leftEyeY) / 80);
+    let distR = Math.min(1, Math.hypot(mouseX - rightEyeX, mouseY - rightEyeY) / 80);
+    const offsetL = maxOffset * distL;
+    const offsetR = maxOffset * distR;
+    pupL.setAttribute('cx', leftEyeX + Math.cos(angleL) * offsetL);
+    pupL.setAttribute('cy', leftEyeY + Math.sin(angleL) * offsetL);
+    pupR.setAttribute('cx', rightEyeX + Math.cos(angleR) * offsetR);
+    pupR.setAttribute('cy', rightEyeY + Math.sin(angleR) * offsetR);
+    if (shiL && shiR) {
+        shiL.setAttribute('cx', leftEyeX + Math.cos(angleL) * (offsetL - 3));
+        shiL.setAttribute('cy', leftEyeY + Math.sin(angleL) * (offsetL - 4));
+        shiR.setAttribute('cx', rightEyeX + Math.cos(angleR) * (offsetR - 3));
+        shiR.setAttribute('cy', rightEyeY + Math.sin(angleR) * (offsetR - 4));
+    }
 }
-
-window.updatePupils = updatePupils;
 
 document.addEventListener('mousemove', (e) => {
-  const rect = document.querySelector('.wrapper').getBoundingClientRect();
-  mouseX = e.clientX - rect.left;
-  mouseY = e.clientY - rect.top;
-  updatePupils();
+    const rect = document.querySelector('.wrapper')?.getBoundingClientRect();
+    if (rect) {
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+        updatePupils();
+    }
 });
 
-// ==================== SPEECH BUBBLE ====================
-function showSpeech(msg) {
-  const speechDiv = document.getElementById('speech');
-  speechDiv.textContent = msg;
-  speechDiv.className = 'speech';
-  void speechDiv.offsetWidth;
-  speechDiv.className = 'speech show';
-  setTimeout(() => { speechDiv.style.opacity = '0'; }, 3000);
-}
-
-window.showSpeech = showSpeech;
-window.resetRage = resetRage;
-window.randomChaos = randomChaos;
-
-// Random speech
+// ==================== RANDOM SPEECH ====================
+const MSGS = ['🐱 meow.', '💻 hacking...', 'sudo rm -rf /fun', '🔓 access granted', '👀 i see u.', '>_ cat /dev/null', '🐱‍💻 payload deployed', '🔥 firewall? lol', 'need coffee!!'];
 setInterval(() => {
-  if (!rageMode && Math.random() < 0.3) {
-    showSpeech(MSGS[Math.floor(Math.random() * MSGS.length)]);
-  }
+    if (!rageMode && Math.random() < 0.3) {
+        showSpeech(MSGS[Math.floor(Math.random() * MSGS.length)]);
+    }
 }, 12000);
 
-// Animate laptop cursor
+// Laptop cursor blink
 setInterval(() => {
-  const cursor = document.getElementById('laptop-cursor');
-  if (cursor) cursor.style.opacity = cursor.style.opacity === '0.8' ? '0.2' : '0.8';
+    const cursor = document.getElementById('laptop-cursor');
+    if (cursor) cursor.style.opacity = cursor.style.opacity === '0.8' ? '0.2' : '0.8';
 }, 500);
 
-// Random rage increase
-setInterval(() => {
-  if (!rageMode && Math.random() < 0.05) {
-    increaseRage(1 + Math.random() * 3, 'random annoyance');
-  }
-}, 30000);
-
-// Sleep/wake
-let lastActivity = Date.now();
-setInterval(() => {
-  const wrapper = document.querySelector('.wrapper');
-  if (Date.now() - lastActivity > 30000 && !wrapper.classList.contains('state-sleeping')) {
-    wrapper.classList.add('state-sleeping');
-  } else if (Date.now() - lastActivity < 5000 && wrapper.classList.contains('state-sleeping')) {
-    wrapper.classList.remove('state-sleeping');
-    showSpeech('🐱 im awake!');
-  }
-}, 1000);
-
-document.addEventListener('mousemove', () => {
-  lastActivity = Date.now();
-  const wrapper = document.querySelector('.wrapper');
-  if (wrapper.classList.contains('state-sleeping')) {
-    wrapper.classList.remove('state-sleeping');
-    showSpeech('😸 meow!');
-  }
-});
-
-// ==================== SETTINGS FROM PYTHON ====================
-window.mouseFollowEnabled = true;
-window.rageEnabled = true;
-window.followSpeed = 5;
-
-function applySettings() {
-    console.log('Settings applied - Mouse Follow:', window.mouseFollowEnabled, 'Rage:', window.rageEnabled);
-    
-    const rageMeter = document.getElementById('rageContainer');
-    if (rageMeter) {
-        rageMeter.style.display = window.rageEnabled ? 'block' : 'none';
-    }
-    
-    if (!window.rageEnabled && typeof rageMode !== 'undefined' && rageMode) {
-        resetRage();
-    }
-}
-
-window.applySettings = applySettings;
-
-const originalRandomChaos = randomChaos;
-window.randomChaos = function() {
-    if (!window.rageEnabled) {
-        const actions = [
-            () => createFakePopup('Subscribe to Cat News!', 'Click OK for cat facts! 🐱'),
-            () => createFakePopup('MEOW!', 'Just a friendly cat 😸', false),
-            () => createFakeTerminal(),
-            () => matrixAttack(),
-            () => screenFlash()
-        ];
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        randomAction();
-        showSpeech('🐱 meow! (rage disabled)');
-        return;
-    }
-    originalRandomChaos();
-};
-
-const originalIncreaseRage = increaseRage;
-window.increaseRage = function(amount, reason) {
-    if (!window.rageEnabled) return;
-    originalIncreaseRage(amount, reason);
-};
-
-console.log('🐱‍💻 Hacker Cat v3.0 - Ready with settings!');
+console.log('🐱‍💻 Hacker Cat v8.0 - Full-screen rage overlay ready');
 </script>
 </body>
 </html>
