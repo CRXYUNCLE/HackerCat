@@ -244,47 +244,41 @@ class SettingsWindow(QWidget):
         self.config["follow_speed"] = self.follow_speed_slider.value()
         self.save_config()
         
-    def launch_cat(self):
-        """Launch the main cat window with current settings"""
-        self.save_current_config()
+   def launch_cat(self):
+    """Launch the main cat window with current settings"""
+    self.save_current_config()
+    
+    # Get the directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Find screenmate.pyw or screenmate.py
+    cat_script = None
+    for name in ["screenmate.pyw", "screenmate.py"]:
+        test_path = os.path.join(script_dir, name)
+        if os.path.exists(test_path):
+            cat_script = test_path
+            break
+    
+    if not cat_script:
+        error_msg = QMessageBox(self)
+        error_msg.setWindowTitle("Error")
+        error_msg.setText(f"❌ Could not find screenmate!\n\nLooking in:\n{script_dir}")
+        error_msg.exec()
+        return
+    
+    # Launch with console to see errors
+    try:
+        python_exe = sys.executable
         
-        # Get the directory where this script is located
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # IMPORTANT: REMOVE CREATE_NO_WINDOW to see errors!
+        subprocess.Popen([python_exe, cat_script, CONFIG_FILE])
         
-        # Find screenmate.pyw or screenmate.py
-        cat_script = None
-        for name in ["screenmate.pyw", "screenmate.py"]:
-            test_path = os.path.join(script_dir, name)
-            if os.path.exists(test_path):
-                cat_script = test_path
-                break
-        
-        if not cat_script:
-            error_msg = QMessageBox(self)
-            error_msg.setWindowTitle("Error")
-            error_msg.setText(f"❌ Could not find screenmate.pyw or screenmate.py!\n\nLooking in:\n{script_dir}\n\nMake sure the file exists.")
-            error_msg.exec()
-            return
-        
-        # Launch the cat script
-        try:
-            # Use python (not pythonw) for better compatibility
-            python_exe = sys.executable
-            
-            # Launch without creating a console window on Windows
-            if sys.platform == 'win32':
-                subprocess.Popen([python_exe, cat_script, CONFIG_FILE], 
-                               creationflags=subprocess.CREATE_NO_WINDOW)
-            else:
-                subprocess.Popen([python_exe, cat_script, CONFIG_FILE])
-            
-            self.close()
-        except Exception as e:
-            error_msg = QMessageBox(self)
-            error_msg.setWindowTitle("Error")
-            error_msg.setText(f"❌ Failed to launch cat:\n{str(e)}")
-            error_msg.exec()
-
+        self.close()
+    except Exception as e:
+        error_msg = QMessageBox(self)
+        error_msg.setWindowTitle("Error")
+        error_msg.setText(f"❌ Failed to launch cat:\n{str(e)}")
+        error_msg.exec()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
